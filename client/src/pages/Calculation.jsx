@@ -86,6 +86,7 @@ const GearCalculationUI = () => {
                   <br></br>
                   <strong>BREATH :</strong> {spurResult.B}
                 </div>
+                
               )}
 
             </CardContent>
