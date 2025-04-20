@@ -32,7 +32,7 @@ export default function Header() {
 
 
   return (
-    <header className="border-b shadow-sm bg-white text-black">
+    <header className="border-b shadow-sm bg-gradient-to-r from-indigo-300 via-red-400 to-slate-400 text-black">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="text-xl font-bold">

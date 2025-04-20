@@ -36,14 +36,14 @@ const Navbar = () => {
   const showDashboard = currentUser?.role === 'supplier' || currentUser?.role === 'expert';
 
   return (
-    <nav className="bg-transparent p-4 shadow-md">
+    <nav className="bg-gradient-to-r from-slate-500 via-red-400 to-slate-600 p-4 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
         {/* Desktop Links */}
         <div className="space-x-8 hidden md:flex">
           <Link to="/" className="text-black hover:text-gray-300">Home</Link>
           <Link to="/about" className="text-black hover:text-gray-300">Market-place</Link>
           <Link to="/services" className="text-black hover:text-gray-300">Expert-Booking</Link>
-          <Link to="/projects" className="text-black hover:text-gray-300">Technical-Calculations</Link>
+          <Link to="/calculation" className="text-black hover:text-gray-300">Technical-Calculations</Link>
 
           {showDashboard && (
             <Link to={getDashboardLink()} className="text-blue-700 font-semibold">Dashboard</Link>
@@ -97,7 +97,7 @@ const Navbar = () => {
             <li><Link to="/" onClick={() => setMenuOpen(false)}>Home</Link></li>
             <li><Link to="/about" onClick={() => setMenuOpen(false)}>Market-place</Link></li>
             <li><Link to="/services" onClick={() => setMenuOpen(false)}>Expert-Booking</Link></li>
-            <li><Link to="/projects" onClick={() => setMenuOpen(false)}>Technical-Calculations</Link></li>
+            <li><Link to="/calculation" onClick={() => setMenuOpen(false)}>Technical-Calculations</Link></li>
 
             {showDashboard && (
               <li>
