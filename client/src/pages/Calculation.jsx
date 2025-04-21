@@ -21,6 +21,11 @@ const GearCalculationUI = () => {
   const [extraGear, setExtraGear] = useState(15);
   const [tolerance, setTolerance] = useState(0.01);
   const [matches, setMatches] = useState([]);
+  const [bevelZ, setBevelZ] = useState(''); // Teeth count (Z₁)
+  const [bevelModule, setBevelModule] = useState(''); // Module (M)
+  const [BgearRatio, BsetGearRatio] = useState(''); // Ratio (e.g., "2:1")
+  const [bevelZ2, setBevelZ2] = useState(''); // Optional Z₂
+  const [bevelResult, setBevelResult] = useState(null);
 
   const degToRad = (angle) => angle * (Math.PI / 180);
 
@@ -69,6 +74,7 @@ const reduceRatio = (a, b) => {
     if (!isNaN(z1) && !isNaN(m) && !isNaN(beta)) {
       const sm = m / Math.cos(beta);
       const pd1 = z1 * sm;
+      
       const od1 = pd1 + 2 * m;
       const ncp = m * Math.PI;
       const lead = (pd1 * Math.PI) / Math.tan(beta);
@@ -77,15 +83,21 @@ const reduceRatio = (a, b) => {
       const h = (13 / 6) * m;
 
       let z2 = null;
+      let pd2 = null;
+      let od2 =null;
       let computedRatio = null;
 
       if (!isNaN(z2Manual) && z2Manual > 0) {
         z2 = z2Manual;
+        pd2 = z2 * sm;
+        od2 = pd2 + 2 * m; 
         computedRatio = reduceRatio(z1, z2);
       } else if (ratioInput.includes(":")) {
         const [n, d] = ratioInput.split(":" ).map(Number);
         if (!isNaN(n) && !isNaN(d) && d !== 0) {
           z2 = (z1 * d) / n;
+          pd2 = z2 * sm;  // pd2 is calculated here again
+          od2 = pd2 + 2 * m; 
           computedRatio = reduceRatio(z1, z2);
         }
       }
@@ -98,13 +110,59 @@ const reduceRatio = (a, b) => {
         lead: lead.toFixed(2),
         nr: nr.toFixed(2),
         h: h.toFixed(2),
+        pd2: pd2 ? pd2.toFixed(2) : "-",
         z2: z2 ? z2.toFixed(0) : "-",
+        od2: od2 ? od2.toFixed(2) : "-",
         computedRatio: computedRatio || "-"
       });
     } else {
       setHelicalResult("Invalid input");
     }
   };
+  const calculateBevelGear = () => {
+    const z1 = parseFloat(bevelZ);
+    const m = parseFloat(bevelModule);
+    const ratioInput = BgearRatio.trim();
+    const z2Manual = parseFloat(bevelZ2);
+  
+    if (!isNaN(z1) && !isNaN(m)) {
+      let z2 = null;
+      
+      // Calculate Z₂ from ratio or manual input
+      if (!isNaN(z2Manual) && z2Manual > 0) {
+        z2 = z2Manual;
+      } else if (ratioInput.includes(":")) {
+        const [n, d] = ratioInput.split(":").map(Number);
+        if (!isNaN(n) && !isNaN(d) && d !== 0) {
+          z2 = (z1 * d) / n;
+        }
+      }
+  
+      // Core calculations (using your equations)
+      const PD = m * z1; // Eq.1
+      const θ = Math.atan(z1 / (z2 || 1)) * (180/Math.PI); // Eq.2 (converted to degrees)
+      const β = PD / (6 * Math.sin(degToRad(θ))); // Eq.7
+      const τβ = (1.167 * 2 * Math.sin(degToRad(θ))) / z1; // Eq.3
+      const α_prime = 8 - θ; // Eq.4
+      const OD = PD + 2 * m * Math.cos(degToRad(θ)); // Eq.5
+      const r_prime = 8 - β; // Eq.6
+  
+      setBevelResult({
+        pitchDiameter: PD.toFixed(2),
+        outerDiameter: OD.toFixed(2),
+        pitchAngle: θ.toFixed(2),
+        toothAngle: β.toFixed(2),
+        pressureAngleCorrection: α_prime.toFixed(2),
+        toothThicknessFactor: τβ.toFixed(4),
+        rootAngle: r_prime.toFixed(2),
+        calculatedZ2: z2 ? z2.toFixed(0) : "N/A",
+        BgearRatio: z2 ? `${z1}:${z2}` : "N/A"
+      });
+    } else {
+      setBevelResult("Invalid input");
+    }
+  };
+
   const findGearCombinations = () => {
     const results = [];
 
@@ -195,11 +253,95 @@ const reduceRatio = (a, b) => {
                   <div><strong>Tooth Height (h):</strong> {helicalResult.h}</div>
                   <div><strong>Z₂:</strong> {helicalResult.z2}</div>
                   <div><strong>gear Ratio:</strong> {helicalResult.computedRatio}</div>
+                  <div><strong>Second wheel pitch diameter (pd2):</strong> {helicalResult.pd2}</div>
+                  <div><strong>Second wheel Outside diameter(od2):</strong> {helicalResult.od2}</div>
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="bevel">
+  <Card>
+    <CardContent className="grid gap-4 p-4">
+      <Label>Number of Teeth (Z₁)</Label>
+      <Input 
+        type="number" 
+        value={bevelZ} 
+        onChange={(e) => setBevelZ(e.target.value)} 
+        placeholder="e.g. 20" 
+      />
+
+      <Label>Module (M)</Label>
+      <Input 
+        type="number" 
+        value={bevelModule} 
+        onChange={(e) => setBevelModule(e.target.value)} 
+        placeholder="e.g. 2.5" 
+      />
+
+      <Label>Gear Ratio (e.g. 2:1)</Label>
+      <Input 
+        type="text" 
+        value={BgearRatio} 
+        onChange={(e) => BsetGearRatio(e.target.value)} 
+        placeholder="e.g. 2:1" 
+      />
+
+      <Label>OR Manually Enter Z₂ (Optional)</Label>
+      <Input 
+        type="number" 
+        value={bevelZ2} 
+        onChange={(e) => setBevelZ2(e.target.value)} 
+        placeholder="e.g. 40" 
+      />
+
+      <Button className="mt-4" onClick={calculateBevelGear}>
+        Calculate Bevel Gear
+      </Button>
+
+      {bevelResult && typeof bevelResult === 'object' && (
+        <div className="mt-4 space-y-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <strong>Pitch Diameter (PD):</strong> {bevelResult.pitchDiameter} mm
+            </div>
+            <div>
+              <strong>Outer Diameter (OD):</strong> {bevelResult.outerDiameter} mm
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <strong>Pitch Angle (θ):</strong> {bevelResult.pitchAngle}°
+            </div>
+            <div>
+              <strong>Tooth Angle (β):</strong> {bevelResult.toothAngle}°
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <strong>α':</strong> {bevelResult.pressureAngleCorrection}°
+            </div>
+            <div>
+              <strong>τβ:</strong> {bevelResult.toothThicknessFactor}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <strong>Root Angle (r'):</strong> {bevelResult.rootAngle}°
+            </div>
+            <div>
+              <strong>Z₂:</strong> {bevelResult.calculatedZ2}
+            </div>
+          </div>
+          <div>
+            <strong>Gear Ratio:</strong> {bevelResult.BgearRatio}
+          </div>
+        </div>
+      )}
+    </CardContent>
+  </Card>
+</TabsContent>
 
         <TabsContent value="differential">
           <Card>
