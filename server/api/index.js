@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRoute from './routes/user.route.js';
 import authRoute from './routes/auth.route.js';
+import authsupplierrouts from './routes/authSupplier.routes.js'
 import cookieParser  from 'cookie-parser';
   
 dotenv.config();
@@ -26,6 +27,7 @@ app.listen(3000, () => {
 
 app.use('/api/user', userRoute);
 app.use('/api/auth', authRoute); // This should be replaced with the actual auth route when implemented
+app.use('/api', authsupplierrouts);
 
 
 app.use((err, req, res, next) => {

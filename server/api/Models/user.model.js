@@ -1,45 +1,92 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
     unique: true,
+    trim: true
   },
   email: {
     type: String,
     required: true,
     unique: true,
-  },
-  Address: {
-    type: String,
-    required: false,
-
+    trim: true,
+    lowercase: true
   },
   password: {
     type: String,
-    required: true,
+    required: true
   },
   profilePicture: {
     type: String,
-    default: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
+    default: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'
   },
-  role:     { type: String, enum: ['customer', 'supplier', 'expert'], default: 'customer' },
-  documents: String,
-
-  
-  // Supplier-specific
-  businessName: String,
-  address: String,
-  toolCategories: String,
-
-  // Expert-specific
+  role: {
+    type: String,
+    enum: ['supplier', 'buyer', 'admin', 'expert'],
+    default: 'buyer'
+  },
+  // Supplier-specific fields
+  businessName: {
+    type: String,
+    required: function() { return this.role === 'supplier'; }
+  },
+  businessType: {
+    type: String,
+    enum: ['wholesaler', 'manufacturer', 'distributor', 'retailer', 'service-provider'],
+    required: function() { return this.role === 'supplier'; }
+  },
+  businessDescription: String,
+  toolCategories: [{
+    type: String,
+    required: function() { return this.role === 'supplier'; }
+  }],
+  businessLicense: {
+    url: String,
+    verified: { 
+      type: Boolean, 
+      default: false 
+    }
+  },
+  address: {
+    type: String,
+    required: function() { return this.role === 'supplier'; }
+  },
+  documents: [{
+    name: String,
+    url: String,
+    isVerified: {
+      type: Boolean,
+      default: false
+    },
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  // Expert-specific fields
   specialty: String,
-  experience: String,
-  ratePerHour: String,
+  experience: Number,
+  ratePerHour: Number,
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+}, {
+  timestamps: true,
+  toJSON: {
+    transform: function(doc, ret) {
+      delete ret.password;
+      return ret;
+    }
+  }
+});
 
-},{timestamps: true,}
+const User = mongoose.model('User', userSchema);
 
-
-);
-const User = mongoose.model("User", userSchema);
 export default User;

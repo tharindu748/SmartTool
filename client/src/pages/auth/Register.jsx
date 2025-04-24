@@ -1,5 +1,3 @@
-// src/pages/auth/Register.jsx
-
 import { useState } from 'react';
 import TextInput from '../../components/TextInput';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -7,7 +5,7 @@ import { app } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
-  const [formData, setFormData] = useState({ role: 'customer' });
+  const [formData, setFormData] = useState({ role: 'supplier' });
   const [file, setFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(null);
   const [error, setError] = useState('');
@@ -42,22 +40,26 @@ export default function Register() {
     }
   };
 
-
   const submitForm = async (documentUrl = null) => {
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch('/api/supplierregister', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, documents: documentUrl })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Registration failed');
+  
+      const data = await res.json(); // Always parse JSON first
+      
+      if (!res.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+      
       navigate('/login');
     } catch (err) {
-      setError(err.message);
+      console.error('Registration error:', err); // Debug
+      setError(err.message || 'Registration failed. Please try again.');
     }
   };
-
 
   return (
     <div className="max-w-lg mx-auto p-4">
@@ -72,36 +74,71 @@ export default function Register() {
           <TextInput id="email" type="email" placeholder="name@gmail.com" onChange={handleChange} required />
         </div>
         <div>
+          <label className="text-sm">Your address</label>
+          <TextInput 
+            id="address"  
+            placeholder="Address" 
+            type="text"  
+            className="border p-2 w-full rounded"
+            onChange={handleChange}
+            required
+            value={formData.address || ''}
+          />
+        </div>
+
+        <div>
           <label className="text-sm">Your password</label>
           <TextInput id="password" type="password" placeholder="Enter your password" onChange={handleChange} required />
         </div>
 
         <label className="text-sm">Select Role</label>
         <select id="role" value={formData.role} onChange={handleChange} className="p-2 border rounded">
-          <option value="customer">Customer</option>
+
           <option value="supplier">Supplier</option>
           <option value="expert">Expert</option>
         </select>
 
+        {/* Supplier fields */}
         {formData.role === 'supplier' && (
           <>
-            <div>
-              <label className="text-sm">Business Name</label>
-              <TextInput id="businessName" placeholder="Enter your business name" onChange={handleChange} required />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Business Name</label>
+                <TextInput 
+                  id="businessName" 
+                  required 
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Business Type</label>
+                <select
+                  id="businessType"
+                  className="w-full p-2 border rounded"
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select type</option>
+                  <option value="wholesaler">Wholesaler</option>
+                  <option value="manufacturer">Manufacturer</option>
+                  <option value="distributor">Distributor</option>
+                </select>
+              </div>
             </div>
+            
             <div>
-              <label className="text-sm">Address</label>
-              <TextInput id="address" placeholder="Enter your address" onChange={handleChange} required />
+              <label className="block text-sm font-medium mb-1">Business Description</label>
+              <textarea
+                id="businessDescription"
+                className="w-full p-2 border rounded"
+                onChange={handleChange}
+                rows={3}
+              />
             </div>
-            <div>
-              <label className="text-sm">Tool Categories</label>
-              <TextInput id="toolCategories" placeholder="Enter tool categories" onChange={handleChange} required />
-            </div>
-            <label className="text-sm">Upload Business License</label>
-            <input type="file" onChange={(e) => setFile(e.target.files[0])} />
           </>
         )}
 
+        {/* Expert fields */}
         {formData.role === 'expert' && (
           <>
             <div>
@@ -112,16 +149,8 @@ export default function Register() {
               <label className="text-sm">Years of Experience</label>
               <TextInput id="experience" placeholder="Enter years of experience" onChange={handleChange} required />
             </div>
-            <div>
-              <label className="text-sm">Rate Per Hour (LKR)</label>
-              <TextInput id="ratePerHour" placeholder="Enter rate per hour" onChange={handleChange} required />
-            </div>
-            <label className="text-sm">Upload Certification</label>
-            <input type="file" onChange={(e) => setFile(e.target.files[0])} />
           </>
         )}
-
-        {uploadProgress && <p className="text-sm">Uploading: {uploadProgress.toFixed(0)}%</p>}
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <button type="submit" className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Register</button>

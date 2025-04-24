@@ -12,7 +12,7 @@ import CustomerProfile from './userprofile/customer'
 import PrivateRoute from './components/auth/PrivateRoute' // Import the PrivateRoute component
 import Dashboard from './pages/dashbord/Dashboard' // Import the Dashboard component
 import Register from './pages/auth/Register'
-import SupplierDashboard from './pages/supplier/Dashboard'
+// import SupplierDashboard from './pages/supplier/Dashboard'
 import SupplierOrders from './pages/supplier/Orders'
 import SupplierProducts from './pages/supplier/Products'
 import SupplierAnalytics from './pages/supplier/Analiytics'
@@ -34,16 +34,15 @@ export default function Main() {
       <Route path="/Calculation" element={<Calculation />} />
       <Route path="/SignUp" element={<SignUp />} />
       <Route path="/SignIn" element={<SignIn />} />
-      {/* <Route path="/Register" element={<Register />} /> */}
       <Route path="/customer" element={<CustomerProfile />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/supplier" element={<SupplierDashboard />} />
+      {/* <Route path="/supplier" element={<SupplierDashboard />} /> */}
       <Route path="/orders" element={<SupplierOrders />} />  
       <Route path="/products" element={<SupplierProducts />} />
       <Route path="/analytics" element={<SupplierAnalytics />} />
       <Route path="/bank" element={<SupplierBank />} />
       <Route path="/eprofile" element={<ExpertProfile />} />
-      <Route path="/profile" element={<SupplierProfile />} />
+      <Route path="/supplier" element={<SupplierProfile />} />
 
 
         {/* Protected route using PrivateRoute */}
