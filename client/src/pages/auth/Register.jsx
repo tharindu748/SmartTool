@@ -1,13 +1,10 @@
 import { useState } from 'react';
 import TextInput from '../../components/TextInput';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { app } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
+
 
 export default function Register() {
   const [formData, setFormData] = useState({ role: 'supplier' });
-  const [file, setFile] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(null);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -17,46 +14,32 @@ export default function Register() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    let documentUrl = null;
 
-    if (file) {
-      const storage = getStorage(app);
-      const storageRef = ref(storage, `registerDocs/${Date.now()}_${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(progress);
-        },
-        (err) => setError('File upload failed.'),
-        async () => {
-          documentUrl = await getDownloadURL(uploadTask.snapshot.ref);
-          submitForm(documentUrl);
-        }
-      );
-    } else {
-      submitForm();
-    }
-  };
-
-  const submitForm = async (documentUrl = null) => {
     try {
-      const res = await fetch('/api/supplierregister', {
+      let endpoint = '';
+      if (formData.role === 'supplier') {
+        endpoint = '/api/supplierregister';
+      } else if (formData.role === 'expert') {
+        endpoint = '/api/expertRegister';
+      } else {
+        throw new Error('Invalid role selected');
+      }
+
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, documents: documentUrl })
+        body: JSON.stringify(formData),
       });
-  
-      const data = await res.json(); // Always parse JSON first
-      
+
+      const data = await res.json();
+
       if (!res.ok) {
         throw new Error(data.message || 'Registration failed');
       }
-      
+
       navigate('/login');
     } catch (err) {
-      console.error('Registration error:', err); // Debug
+      console.error('Registration error:', err);
       setError(err.message || 'Registration failed. Please try again.');
     }
   };
@@ -93,7 +76,6 @@ export default function Register() {
 
         <label className="text-sm">Select Role</label>
         <select id="role" value={formData.role} onChange={handleChange} className="p-2 border rounded">
-
           <option value="supplier">Supplier</option>
           <option value="expert">Expert</option>
         </select>
@@ -147,7 +129,7 @@ export default function Register() {
             </div>
             <div>
               <label className="text-sm">Years of Experience</label>
-              <TextInput id="experience" placeholder="Enter years of experience" onChange={handleChange} required />
+              <TextInput id="yearsOfExperience" placeholder="Enter years of experience" onChange={handleChange} required />
             </div>
           </>
         )}

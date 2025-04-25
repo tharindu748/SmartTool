@@ -41,7 +41,7 @@ const Navbar = () => {
         {/* Desktop Links */}
         <div className="space-x-8 hidden md:flex">
           <Link to="/" className="text-black hover:text-gray-300">Home</Link>
-          <Link to="/about" className="text-black hover:text-gray-300">Market-place</Link>
+          <Link to="/marketplace" className="text-black hover:text-gray-300">Market-place</Link>
           <Link to="/services" className="text-black hover:text-gray-300">Expert-Booking</Link>
           <Link to="/calculation" className="text-black hover:text-gray-300">Technical-Calculations</Link>
 
@@ -95,7 +95,7 @@ const Navbar = () => {
         <div className="md:hidden bg-gray-600 p-4">
           <ul className="space-y-4 text-white">
             <li><Link to="/" onClick={() => setMenuOpen(false)}>Home</Link></li>
-            <li><Link to="/about" onClick={() => setMenuOpen(false)}>Market-place</Link></li>
+            <li><Link to="/marketplace" onClick={() => setMenuOpen(false)}>Market-place</Link></li>
             <li><Link to="/services" onClick={() => setMenuOpen(false)}>Expert-Booking</Link></li>
             <li><Link to="/calculation" onClick={() => setMenuOpen(false)}>Technical-Calculations</Link></li>
 

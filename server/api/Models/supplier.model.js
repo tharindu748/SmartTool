@@ -4,8 +4,34 @@ const supplierSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: false,  // Made optional for initial registration
+    required: false, // No need to enforce this as required, keeping it optional
+    unique: false,   // Remove unique constraint to allow null values
+  },
+  
+  username: {  // Add username field
+    type: String,
+    required: true,
     unique: true
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    lowercase: true
+  },
+  password: {
+    type: String,
+    required: true,
+    // validate: {
+    //   validator: function (value) {
+    //     return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/.test(
+    //       value
+    //     );
+    //   },
+    //   message:
+    //     "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.",
+    // },
   },
   role: {
     type: String,
@@ -35,6 +61,12 @@ const supplierSchema = new mongoose.Schema({
       type: String,
       required: false,  // Made optional
       default: null
+    },
+    documents: [String],  // Firebase document URLs
+    documentStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending'
     },
     verified: { 
       type: Boolean, 
@@ -167,8 +199,7 @@ supplierSchema.pre('save', function(next) {
   // Check if required fields are complete
   if (this.role === 'supplier') {
     const requiredFieldsComplete = this.businessLicense.url && 
-                                 this.taxIdentificationNumber && 
-                                 this.userId;
+                                 this.taxIdentificationNumber;
     this.registrationStatus = requiredFieldsComplete ? 'complete' : 'pending';
   }
   

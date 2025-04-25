@@ -5,13 +5,13 @@ import { HiUser, HiArrowSmRight, HiChartBar, HiClipboardList, HiCreditCard, HiHe
 export default function Sidebar({ role }) {
   const sidebarItems = {
     supplier: [
-      { label: 'My Profile', to: '/profile', icon: <HiUser /> },
+      { label: 'My Profile', to: '/supplier', icon: <HiUser /> },
       { label: 'Orders', to: '/orders', icon: <HiClipboardList /> },
-      { label: 'Product', to: '/products', icon: <HiBriefcase /> },
+      { label: 'Product', to: '/addproduct', icon: <HiBriefcase /> },
       { label: 'Analytics', to: '/analytics', icon: <HiChartBar /> },
       { label: 'Bank Account Details', to: '/bank', icon: <HiCreditCard /> },
     ],
-    customer: [
+    buyer: [
       { label: 'My Profile', to: '/customer/dashboard', icon: <HiUser /> },
       { label: 'Orders', to: '/customer/orders', icon: <HiClipboardList /> },
       { label: 'Favorites', to: '/customer/favorites', icon: <HiHeart /> },

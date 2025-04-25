@@ -19,6 +19,9 @@ import SupplierAnalytics from './pages/supplier/Analiytics'
 import SupplierBank from './pages/supplier/Bank'
 import SupplierProfile from './pages/supplier/Profile'  
 import ExpertProfile from './pages/expert/EProfile'
+import SupplierDashboard from './pages/supplier/Dashboard'
+import AddProduct from './pages/supplier/AddProduct'
+import Marketplace from './pages/Marketplace'
 
 
 
@@ -36,13 +39,15 @@ export default function Main() {
       <Route path="/SignIn" element={<SignIn />} />
       <Route path="/customer" element={<CustomerProfile />} />
       <Route path="/register" element={<Register />} />
-      {/* <Route path="/supplier" element={<SupplierDashboard />} /> */}
       <Route path="/orders" element={<SupplierOrders />} />  
       <Route path="/products" element={<SupplierProducts />} />
       <Route path="/analytics" element={<SupplierAnalytics />} />
       <Route path="/bank" element={<SupplierBank />} />
       <Route path="/eprofile" element={<ExpertProfile />} />
       <Route path="/supplier" element={<SupplierProfile />} />
+      <Route path="/supplier/dashboard" element={<SupplierDashboard />} />
+      <Route path="/addproduct" element={<AddProduct/>} />
+      <Route path='/marketplace' element={<Marketplace />} />
 
 
         {/* Protected route using PrivateRoute */}
