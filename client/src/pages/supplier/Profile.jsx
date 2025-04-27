@@ -22,15 +22,53 @@ const SupplierProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/api/supplier/me', {
-          withCredentials: true,
+        setLoading(true);
+
+        const user = auth.currentUser;
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+
+        const token = await user.getIdToken(); // Firebase auth token
+
+        const res = await axios.get('http://localhost:3000/api/expert/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         });
-        setSupplierData(res.data);
+
+        if (res.data) {
+          setExpertData(res.data);
+
+          setFormData({
+            username: res.data.username || '',
+            email: res.data.email || '',
+            role: res.data.role || '',
+            specialty: res.data.specialty || '',
+            profilePicture: res.data.profilePicture || '',
+            yearsOfExperience: res.data.yearsOfExperience || '',
+            address: res.data.address || '',
+            registrationStatus: res.data.registrationStatus || '',
+            contactPersonName: res.data.contactPersonName || '',
+            contactPersonPhone: res.data.contactPersonPhone || '',
+          });
+
+          if (res.data.profilePicture) {
+            setImageFileUrl(res.data.profilePicture);
+          }
+        }
       } catch (err) {
         console.error('Failed to load profile:', err.response?.data || err.message);
+        
+        if (err.response?.status === 401) {
+          // Token expired or unauthorized - Redirect to login
+          window.location.href = '/login';
+        }
+      } finally {
+        setLoading(false);
       }
     };
-  
+
     fetchProfile();
   }, []);
   

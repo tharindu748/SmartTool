@@ -23,7 +23,7 @@ export default function Dashboard() {
         <DashSidebar tab={tab} setTab={setTab} />
       </div>
       {/* Profile Section */}
-      {tab === 'profile' && <DashProfile />}
+      {/* {tab === 'profile' && <DashProfile />} */}
     </div>
   );
 }

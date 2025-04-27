@@ -8,6 +8,7 @@ import {
   updateSuccess,
   updateFailure
 } from '../redux/user/userSlice';
+import Sidebar from './Sidebar';
 
 export default function DashProfile() {
   const { currentUser } = useSelector((state) => state.user);
@@ -24,7 +25,7 @@ export default function DashProfile() {
 
   const fileInputRef = useRef(null);
 
-  // Image select
+  // Image select handler
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -76,12 +77,12 @@ export default function DashProfile() {
     );
   };
 
-  // Form input
+  // Handle form input
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  // Submit update
+  // Submit profile update
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUpdateErrorMsg(null);
@@ -91,19 +92,28 @@ export default function DashProfile() {
       return setUpdateErrorMsg('Wait until image upload completes.');
     }
 
-    if (Object.keys(formData).length === 0) {
-      return setUpdateErrorMsg('No changes made.');
-    }
-
     try {
       dispatch(updateStart());
+
+      const updateData = {
+        ...formData,
+        profilePicture: imageFileUrl,
+      };
+
+      // Remove empty fields
+      Object.keys(updateData).forEach(key => {
+        if (!updateData[key]) {
+          delete updateData[key];
+        }
+      });
+
       const res = await fetch(`/api/user/update/${currentUser._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${currentUser.token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(updateData),
       });
 
       const data = await res.json();
@@ -113,7 +123,7 @@ export default function DashProfile() {
         setUpdateErrorMsg(data.message);
       } else {
         dispatch(updateSuccess(data));
-        setUpdateSuccessMsg('Profile updated successfully.');
+        setUpdateSuccessMsg('Profile updated successfully!');
       }
     } catch (err) {
       dispatch(updateFailure(err.message));
@@ -122,112 +132,115 @@ export default function DashProfile() {
   };
 
   return (
-    <div className="min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-700 mb-8">Manage Profile</h1>
+    <div className="min-h-screen flex flex-col md:flex-row">
+        <Sidebar role="buyer" />
+  
+      <main className="flex-1 p-6">
+        <h1 className="text-3xl font-bold text-gray-700 mb-8">Manage Profile</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        {/* Form Section */}
-        <div>
-          <div className="flex justify-center mb-6">
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              onChange={handleImageChange}
-              className="hidden"
-            />
-            <div
-              onClick={() => fileInputRef.current.click()}
-              className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-300 hover:border-blue-500 cursor-pointer relative"
-            >
-              <img
-                src={imageFileUrl || '/default-avatar.png'}
-                alt="avatar"
-                className="w-full h-full object-cover"
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          {/* Form Section */}
+          <div>
+            <div className="flex justify-center mb-6">
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                className="hidden"
               />
-              {uploadProgress !== null && uploadProgress < 100 && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white font-bold">
-                  {uploadProgress}%
-                </div>
-              )}
+              <div
+                onClick={() => fileInputRef.current.click()}
+                className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-300 hover:border-blue-500 cursor-pointer relative"
+              >
+                <img
+                  src={imageFileUrl || '/default-avatar.png'}
+                  alt="avatar"
+                  className="w-full h-full object-cover"
+                />
+                {uploadProgress !== null && uploadProgress < 100 && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white font-bold">
+                    {uploadProgress}%
+                  </div>
+                )}
+              </div>
             </div>
+
+            {uploadError && <p className="text-red-500 text-center">{uploadError}</p>}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <TextInput
+                id="username"
+                label="Username"
+                type="text"
+                defaultValue={currentUser.username}
+                onChange={handleChange}
+              />
+              <TextInput
+                id="email"
+                label="Email"
+                type="email"
+                defaultValue={currentUser.email}
+                onChange={handleChange}
+              />
+              <TextInput
+                id="address"
+                label="Address"
+                type="text"
+                placeholder="Your address"
+                defaultValue={currentUser.address}
+                onChange={handleChange}
+              />
+              <TextInput
+                id="password"
+                label="New Password"
+                type="password"
+                placeholder="••••••••"
+                onChange={handleChange}
+              />
+
+              <button
+                type="submit"
+                disabled={imageUploading}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded"
+              >
+                {imageUploading ? 'Uploading...' : 'Update Profile'}
+              </button>
+            </form>
+
+            {updateSuccessMsg && (
+              <p className="text-green-600 text-center mt-4">{updateSuccessMsg}</p>
+            )}
+            {updateErrorMsg && (
+              <p className="text-red-600 text-center mt-4">{updateErrorMsg}</p>
+            )}
           </div>
 
-          {uploadError && <p className="text-red-500 text-center">{uploadError}</p>}
+          {/* Preview Section */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-2xl font-semibold mb-6">Preview</h2>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <TextInput
-              id="username"
-              label="Username"
-              type="text"
-              defaultValue={currentUser.username}
-              onChange={handleChange}
-            />
-            <TextInput
-              id="email"
-              label="Email"
-              type="email"
-              defaultValue={currentUser.email}
-              onChange={handleChange}
-            />
-            <TextInput
-              id="address"
-              label="Address"
-              type="text"
-              placeholder="Your address"
-              defaultValue={currentUser.address}
-              onChange={handleChange}
-            />
-            <TextInput
-              id="password"
-              label="New Password"
-              type="password"
-              placeholder="••••••••"
-              onChange={handleChange}
-            />
-
-            <button
-              type="submit"
-              disabled={imageUploading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded"
-            >
-              Update Profile
-            </button>
-          </form>
-
-          {/* Feedback Messages */}
-          {updateSuccessMsg && (
-            <p className="text-green-600 text-center mt-4">{updateSuccessMsg}</p>
-          )}
-          {updateErrorMsg && (
-            <p className="text-red-600 text-center mt-4">{updateErrorMsg}</p>
-          )}
-        </div>
-
-        {/* Preview Section */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-6">Preview</h2>
-
-          <div className="space-y-4 text-gray-800">
-            <div>
-              <p className="text-sm font-medium text-gray-500">Username</p>
-              <p>{formData.username || currentUser.username}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Email</p>
-              <p>{formData.email || currentUser.email}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Address</p>
-              <p>{formData.address || currentUser.address || 'Not provided'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Password</p>
-              <p>{formData.password ? '••••••••' : 'Unchanged'}</p>
+            <div className="space-y-4 text-gray-800">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Username</p>
+                <p>{formData.username || currentUser.username}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Email</p>
+                <p>{formData.email || currentUser.email}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Address</p>
+                <p>{formData.address || currentUser.address || 'Not provided'}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Password</p>
+                <p>{formData.password ? '••••••••' : 'Unchanged'}</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

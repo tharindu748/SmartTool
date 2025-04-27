@@ -20,71 +20,89 @@ export const signout = (req, res, next) => {
 
 // Update user controller
 export const updateUser = async (req, res, next) => {
-  if (req.user.id !== req.params.userId) {
-    return next(errorHandler(403, "You are not allowed to update this account"));
-  }
-
   try {
+    console.log('🔵 Received update request with data:', req.body);
+
+    // Authorization check
+    if (req.user.id !== req.params.userId) {
+      return next(errorHandler(403, "You are not allowed to update this account"));
+    }
+
     const updateFields = {};
 
-    // 🔐 Handle password
+    // Handle profile picture update
+    if (req.body.profilePicture) {
+      console.log('🖼 Updating profile picture to:', req.body.profilePicture);
+      updateFields.profilePicture = req.body.profilePicture;
+    }
+
+    // Handle password update
     if (req.body.password) {
       if (req.body.password.length < 6) {
         return next(errorHandler(400, "Password must be at least 6 characters"));
       }
-      updateFields.password = bcryptjs.hashSync(req.body.password, 10);
+      const hashedPassword = bcryptjs.hashSync(req.body.password, 10);
+      updateFields.password = hashedPassword;
     }
 
-    // 🧾 Username validation
-    if (req.body.username) {
-      if (req.body.username.length < 4 || req.body.username.length > 20) {
+    // Handle username update
+    if (req.body.username !== undefined) {
+      const username = req.body.username.trim();
+
+      if (username.length < 7 || username.length > 20) {
         return next(errorHandler(400, "Username must be between 7 and 20 characters"));
       }
 
-      if (req.body.username.includes(' ')) {
+      if (username.includes(' ')) {
         return next(errorHandler(400, "Username must not contain spaces"));
       }
 
-      if (!req.body.username.match(/^[a-zA-Z0-9]+$/)) {
+      if (!/^[a-zA-Z0-9]+$/.test(username)) {
         return next(errorHandler(400, "Username must contain only letters and numbers"));
       }
 
-      // Check for duplicate only if username is changing
-      if (req.body.username !== req.user.username) {
-        const existingUser = await User.findOne({ username: req.body.username });
+      if (username !== req.user.username) {
+        const existingUser = await User.findOne({ username });
         if (existingUser) {
           return next(errorHandler(400, "Username already exists"));
         }
       }
 
-      updateFields.username = req.body.username;
+      updateFields.username = username;
     }
 
-    // 📨 Email, Address, ProfilePicture
-    if (req.body.email) updateFields.email = req.body.email;
-    if (req.body.Address) updateFields.Address = req.body.Address;
-    if (req.body.profilePicture) updateFields.profilePicture = req.body.profilePicture;
+    // Handle email update
+    if (req.body.email) {
+      updateFields.email = req.body.email.toLowerCase().trim();
+    }
 
-    // 🛠 Debug log
-    console.log("🛠 Updating user with fields:", updateFields);
-    console.log("🆔 Updating user ID:", req.params.userId);
+    // Handle address update
+    if (req.body.address) {
+      updateFields.address = req.body.address.trim();
+    }
 
-    // 🔄 Update user in DB
+    console.log('🛠 Fields prepared for update:', updateFields);
+
+    // Update user in MongoDB
     const updatedUser = await User.findByIdAndUpdate(
       req.params.userId,
       { $set: updateFields },
       { new: true }
     );
 
+    console.log('✅ Updated user:', updatedUser);
+
     if (!updatedUser) {
       return next(errorHandler(404, "User not found"));
     }
 
+    // Remove password from response
     const { password, ...rest } = updatedUser._doc;
+
     res.status(200).json(rest);
 
   } catch (err) {
-    console.error('🔥 Update error:', err);
+    console.error('❌ Update error:', err);
     next(err);
   }
 };

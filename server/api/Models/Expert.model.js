@@ -4,13 +4,13 @@ const expertSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: false,  // Made optional for initial registration
+    required: false,
     unique: false
   },
-  username: {  // Add username field
+  username: {
     type: String,
     required: true,
-    unique: true
+    unique: false
   },
   email: {
     type: String,
@@ -22,20 +22,10 @@ const expertSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    // validate: {
-    //   validator: function (value) {
-    //     return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/.test(
-    //       value
-    //     );
-    //   },
-    //   message:
-    //     "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.",
-    // },
   },
   role: {
     type: String,
-    default: 'expert',
-    enum: ['expert']
+    default: 'expert' // No enum restriction
   },
   specialty: {
     type: String,
@@ -43,49 +33,44 @@ const expertSchema = new mongoose.Schema({
   },
   yearsOfExperience: {
     type: Number,
-    required: [true, 'Years of experience is required'],
-    min: [0, 'Years of experience cannot be negative']
+    required: true,
+    min: 0
+  },
+  profilePicture: {
+    type: String,
+    default: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'
   },
   
   bio: {
     type: String,
     maxlength: 1000,
-    required: false  // Made optional for expert introduction
+    required: false
   },
   address: {
     type: String,
-    required: true,
-    example: "No.383 Koulea South Sewanagala"
+    required: true
   },
   contactPerson: {
-    name: {
-      type: String,
-      required: false
-    },
-    position: {
-      type: String,
-      required: false
-    },
-    phone: {
-      type: String,
-      required: false
-    },
+    name: { type: String, required: false },
+    position: { type: String, required: false },
+    phone: { type: String, required: false },
     email: {
       type: String,
       validate: {
-        validator: function(v) {
-          if (!v) return true;  // Allow empty
+        validator: function (v) {
+          if (!v) return true;
           return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
         },
         message: props => `${props.value} is not a valid email!`
-      }
+      },
+      required: false
     }
   },
   documents: [{
     name: String,
     type: {
       type: String,
-      enum: ['certification', 'degree', 'other']
+      enum: ['license', 'certificate', 'insurance', 'other']
     },
     url: String,
     isVerified: {
@@ -99,7 +84,7 @@ const expertSchema = new mongoose.Schema({
     verifiedAt: Date,
     notes: String
   }],
-  registrationStatus: {  // Track registration status
+  registrationStatus: {
     type: String,
     enum: ['pending', 'complete'],
     default: 'pending'
@@ -118,16 +103,14 @@ const expertSchema = new mongoose.Schema({
 });
 
 // Middleware to update registration status
-expertSchema.pre('save', function(next) {
+expertSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
-
-  // Check if required fields are complete for expert role
   const requiredFieldsComplete = this.specialty && this.yearsOfExperience && this.userId;
   this.registrationStatus = requiredFieldsComplete ? 'complete' : 'pending';
-
   next();
 });
 
-const Expert = mongoose.model('Expert', expertSchema);
+// ✅ Fix OverwriteModelError
+const Expert = mongoose.models.Expert || mongoose.model('Expert', expertSchema);
 
 export default Expert;

@@ -40,9 +40,9 @@ const Navbar = () => {
       <div className="container mx-auto flex justify-between items-center">
         {/* Desktop Links */}
         <div className="space-x-8 hidden md:flex">
-          <Link to="/" className="text-black hover:text-gray-300">Home</Link>
+          <Link to="/profile" className="text-black hover:text-gray-300">Home</Link>
           <Link to="/marketplace" className="text-black hover:text-gray-300">Market-place</Link>
-          <Link to="/services" className="text-black hover:text-gray-300">Expert-Booking</Link>
+          <Link to="/expertbooking" className="text-black hover:text-gray-300">Expert-Booking</Link>
           <Link to="/calculation" className="text-black hover:text-gray-300">Technical-Calculations</Link>
 
           {showDashboard && (
@@ -96,7 +96,7 @@ const Navbar = () => {
           <ul className="space-y-4 text-white">
             <li><Link to="/" onClick={() => setMenuOpen(false)}>Home</Link></li>
             <li><Link to="/marketplace" onClick={() => setMenuOpen(false)}>Market-place</Link></li>
-            <li><Link to="/services" onClick={() => setMenuOpen(false)}>Expert-Booking</Link></li>
+            <li><Link to="/expertbooking" onClick={() => setMenuOpen(false)}>Expert-Booking</Link></li>
             <li><Link to="/calculation" onClick={() => setMenuOpen(false)}>Technical-Calculations</Link></li>
 
             {showDashboard && (

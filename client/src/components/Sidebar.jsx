@@ -12,13 +12,16 @@ export default function Sidebar({ role }) {
       { label: 'Bank Account Details', to: '/bank', icon: <HiCreditCard /> },
     ],
     buyer: [
-      { label: 'My Profile', to: '/customer/dashboard', icon: <HiUser /> },
+      { label: 'My Profile', to: '/userprofile', icon: <HiUser /> },
       { label: 'Orders', to: '/customer/orders', icon: <HiClipboardList /> },
+      { label: 'Appointments', to: '/customer/appointments', icon: <HiClipboardList /> },
+      {label: 'messages', to: '/chat/:expertId', icon: <HiClipboardList /> },
       { label: 'Favorites', to: '/customer/favorites', icon: <HiHeart /> },
     ],
     expert: [
       { label: 'My Profile', to: '/eprofile', icon: <HiUser /> },
       { label: 'Appointments', to: '/expert/appointments', icon: <HiClipboardList /> },
+      {label: 'messages', to: '/chat/:expertId', icon: <HiClipboardList /> },
       { label: 'Qualification', to: '/expert/qualifications', icon: <HiChartBar /> },
     ],
   };
