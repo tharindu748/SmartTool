@@ -29,7 +29,9 @@ export const addProduct = async (req, res, next) => {
   }
 };
 
-// ✅ Get all products
+
+
+// Get all products
 export const getAllProducts = async (req, res, next) => {
   try {
     const products = await Product.find().populate('supplierId', 'username email');
@@ -37,5 +39,19 @@ export const getAllProducts = async (req, res, next) => {
   } catch (err) {
     console.error('❌ Failed to fetch products:', err);
     next(errorHandler(500, 'Failed to fetch products'));
+  }
+};
+
+// Get product by ID
+export const getProductById = async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params.id).populate('supplierId', 'username email');
+    if (!product) {
+      return next(errorHandler(404, 'Product not found'));
+    }
+    res.status(200).json(product);
+  } catch (err) {
+    console.error('❌ Failed to fetch product by ID:', err);
+    next(errorHandler(500, 'Error fetching product by ID'));
   }
 };

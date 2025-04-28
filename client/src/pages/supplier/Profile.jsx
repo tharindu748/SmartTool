@@ -1,10 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Sidebar from '../../components/Sidebar';
+import { app } from "../../firebase"; // Your Firebase config import
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import axios from 'axios';
 
 const SupplierProfile = () => {
   const [supplierData, setSupplierData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const storage = getStorage(app);
   const [formData, setFormData] = useState({
     username: '',
     businessName: '',
@@ -22,53 +25,15 @@ const SupplierProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        setLoading(true);
-
-        const user = auth.currentUser;
-        if (!user) {
-          throw new Error('User not authenticated');
-        }
-
-        const token = await user.getIdToken(); // Firebase auth token
-
-        const res = await axios.get('http://localhost:3000/api/expert/me', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+        const res = await axios.get('http://localhost:3000/api/supplier/me', {
+          withCredentials: true,
         });
-
-        if (res.data) {
-          setExpertData(res.data);
-
-          setFormData({
-            username: res.data.username || '',
-            email: res.data.email || '',
-            role: res.data.role || '',
-            specialty: res.data.specialty || '',
-            profilePicture: res.data.profilePicture || '',
-            yearsOfExperience: res.data.yearsOfExperience || '',
-            address: res.data.address || '',
-            registrationStatus: res.data.registrationStatus || '',
-            contactPersonName: res.data.contactPersonName || '',
-            contactPersonPhone: res.data.contactPersonPhone || '',
-          });
-
-          if (res.data.profilePicture) {
-            setImageFileUrl(res.data.profilePicture);
-          }
-        }
+        setSupplierData(res.data);
       } catch (err) {
         console.error('Failed to load profile:', err.response?.data || err.message);
-        
-        if (err.response?.status === 401) {
-          // Token expired or unauthorized - Redirect to login
-          window.location.href = '/login';
-        }
-      } finally {
-        setLoading(false);
       }
     };
-
+  
     fetchProfile();
   }, []);
   
@@ -99,18 +64,48 @@ const SupplierProfile = () => {
     }
   };
   
+  
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageFileUrl(reader.result);
-        setUploadProgress(100); // fake complete upload
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+  
+    const storageRef = ref(storage, `profilePictures/${Date.now()}_${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+  
+    uploadTask.on('state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+      },
+      (error) => {
+        console.error("Upload error:", error);
+      },
+      async () => {
+        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+  
+        try {
+          // ✅ Update MongoDB with the new profilePicture
+          const res = await axios.put('http://localhost:3000/api/supplier/me', 
+            { profilePicture: downloadURL }, 
+            { withCredentials: true }
+          );
+  
+          alert('Profile picture updated successfully!');
+          
+          // ✅ Update frontend UI immediately
+          setSupplierData(res.data); // Refresh supplierData with updated backend data
+          setImageFileUrl(downloadURL); // Local preview
+          setCurrentUser((prev) => ({ ...prev, profilePicture: downloadURL }));
+  
+        } catch (err) {
+          console.error('Failed to update profile picture:', err.response?.data || err.message);
+          alert('Profile picture update failed.');
+        }
+      }
+    );
   };
+  
 
   if (loading) return <div>Loading...</div>;
   if (!supplierData) return <div>No profile data found.</div>;
@@ -137,11 +132,12 @@ const SupplierProfile = () => {
               onClick={() => fileInputRef.current.click()}
               className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200 hover:border-blue-500 cursor-pointer relative"
             >
-              <img
-                src={imageFileUrl || currentUser.profilePicture}
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
+            <img
+              src={supplierData.profilePicture || '/default-profile.png'}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
+
               {uploadProgress !== null && uploadProgress < 100 && (
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white font-bold">
                   {uploadProgress}%

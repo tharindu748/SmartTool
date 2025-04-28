@@ -110,9 +110,7 @@ const ExpertProfile = () => {
       return;
     }
   
-    const storage = getStorage(app);
-    const storageRef = ref(storage, `profilePictures/${user.uid}/${Date.now()}_${file.name}`); // <-- user.uid එක add කලොත් නියමයි!
-  
+    const storageRef = ref(storage, `profilePictures/${user.uid}/${Date.now()}_${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
   
     uploadTask.on(
@@ -128,16 +126,18 @@ const ExpertProfile = () => {
       },
       async () => {
         const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-        setImageFileUrl(downloadURL);
+        setImageFileUrl(downloadURL); // preview
   
         try {
-          await axios.put('http://localhost:3000/api/expert/me', {
+          const res = await axios.put('http://localhost:3000/api/expert/me', {
             profilePicture: downloadURL
           }, {
             withCredentials: true
           });
   
-          alert('Profile picture uploaded successfully!');
+          // ✅ Immediately update local frontend state
+          setExpertData(res.data); // <<--- UPDATED local state with latest backend data
+          setSuccessMessage('Profile picture uploaded and updated successfully!');
         } catch (err) {
           console.error('Failed to update profile:', err);
           alert('Failed to update profile!');
@@ -147,6 +147,7 @@ const ExpertProfile = () => {
       }
     );
   };
+  
   
   
   const handleDocumentFileChange = (e) => {
@@ -261,11 +262,12 @@ const ExpertProfile = () => {
               onClick={() => fileInputRef.current.click()}
               className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200 hover:border-blue-500 cursor-pointer relative"
             >
-              <img
-                src={imageFileUrl || currentUser.profilePicture}
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
+            <img
+              src={expertData.profilePicture || '/default-profile.png'}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
+
               {uploadProgress !== null && uploadProgress < 100 && (
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white font-bold">
                   {uploadProgress}%

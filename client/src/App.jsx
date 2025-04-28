@@ -8,7 +8,7 @@ import SignUp from './pages/auth/SignUp'
 import SignIn from './pages/auth/SignIn'
 import Footer from './components/Footer' // Import the Footer component
 // import Register from './pages/Register'
-import CustomerProfile from './userprofile/customer' 
+// import CustomerProfile from './userprofile/customer' 
 import PrivateRoute from './components/auth/PrivateRoute' // Import the PrivateRoute component
 import Dashboard from './pages/dashbord/Dashboard' // Import the Dashboard component
 import Register from './pages/auth/Register'
@@ -26,10 +26,11 @@ import TeamPage from './pages/ExpertBooking'
 import SingleExpertProfile from './components/expert/Dynamicexpert';
 import AppointmentForm from './components/Appointmentform';
 import ExpertAppointmentDashboard from './components/expert/ExpertAppointment';
-import DashProfile from './components/DashProfile';
 import ChatPage from './pages/ChatPage';
 import ChatSidebar from './components/ChatSidebar'
 import CustomerAppointments from './pages/customer/customerappointment';
+import DashProfile from './pages/DashProfile'
+import ProductDetail from './pages/productdetails'
 
 
 
@@ -44,7 +45,7 @@ export default function Main() {
       <Route path="/Calculation" element={<Calculation />} />
       <Route path="/SignUp" element={<SignUp />} />
       <Route path="/SignIn" element={<SignIn />} />
-      <Route path="/customer" element={<CustomerProfile />} />
+      {/* <Route path="/customer" element={<CustomerProfile />} /> */}
       <Route path="/register" element={<Register />} />
       <Route path="/orders" element={<SupplierOrders />} />  
       <Route path="/products" element={<SupplierProducts />} />
@@ -63,6 +64,7 @@ export default function Main() {
       <Route path="/chat/:expertId" element={<ChatPage />} />
       <Route path="/chat" element={<ChatSidebar />} />
       <Route path="/customer/appointments" element={<CustomerAppointments />} />
+      <Route path="/products/:id" element={<ProductDetail />} />
       
 
 

@@ -1,4 +1,4 @@
-import bcryptjs from "bcryptjs";
+import bcrypt from "bcryptjs";
 import User from "../Models/user.model.js";
 import { errorHandler } from "../utils/error.js";
 
@@ -18,7 +18,53 @@ export const signout = (req, res, next) => {
   }
 };
 
-// Update user controller
+
+export const updatePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    // Validate input
+    if (!currentPassword || !newPassword) {
+      return next(errorHandler(400, 'Both current and new password are required'));
+    }
+
+    // Find user with password field included
+    const user = await User.findById(req.params.userId).select('+password');
+    if (!user) {
+      return next(errorHandler(404, 'User not found'));
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return next(errorHandler(401, 'Current password is incorrect'));
+    }
+
+    // Validate new password
+    if (newPassword.length < 6) {
+      return next(errorHandler(400, 'Password must be at least 6 characters'));
+    }
+
+    // Hash and update password
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.userId,
+      { password: hashedPassword },
+      { new: true }
+    ).select('-password');
+
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully',
+      user: updatedUser
+    });
+
+  } catch (error) {
+    console.error('Password update error:', error);
+    next(errorHandler(500, 'Internal server error'));
+  }
+};
+
 export const updateUser = async (req, res, next) => {
   try {
     console.log('🔵 Received update request with data:', req.body);
